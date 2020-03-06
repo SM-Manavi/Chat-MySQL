@@ -1,0 +1,17 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %></title>
+</head>
+<body>
+    <form action="<%= path %>" method="post">
+        <input type="text" name="email" id="" placeholder="email">
+        <% if(pageTitle === "Signup") { %>
+            <input type="text" name="name" id="" placeholder="your name">
+        <%}%>
+        <input type="password" name="password" id="" placeholder="password">
+        <input type="submit" value="<%= pageTitle %>">
+    </form>
+</body>
+</html>

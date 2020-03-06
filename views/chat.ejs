@@ -1,0 +1,131 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <style>
+      ul li {
+        display: block;
+      }
+
+      ul li:hover,
+      ul li:focus {
+        color: red;
+      }
+
+      li .ht.selectedclass {
+        background-color: pink;
+      }
+    </style>
+    <title>Chat</title>
+  </head>
+  <body>
+    <div class="container">
+      <br />
+      <div class="jumbotron">
+        <h1 class="display-4">Send Message</h1>
+        <div class="d-flex">
+          <div class="d-flex flex-column w-25">
+            <div class="alert alert-success m-0 p-1 ">
+              Online User
+            </div>
+            <ul class="list-group " style="height: 200px; overflow: auto">
+              <div class="list-group" id="onlineUser"></div>
+            </ul>
+          </div>
+          <textarea
+            id="message"
+            class="form-control"
+            placeholder="Your Message Here"
+          >
+          </textarea>
+        </div>
+        <button id="send" class="btn btn-success">Send</button>
+      </div>
+      <div id="messages"></div>
+    </div>
+  </body>
+  <script>
+    var destUserId;
+
+    function getCookie(name) {
+      var value = "; " + document.cookie;
+      var parts = value.split("; " + name + "=");
+      if (parts.length == 2)
+        return parts
+          .pop()
+          .split(";")
+          .shift();
+    }
+
+    const socket = io({
+      transportOptions: {
+        polling: {
+          extraHeaders: {
+            jwt: getCookie("jwt")
+          }
+        }
+      }
+    });
+
+    $("#send").click(function() {
+      const msg = document.getElementById("message").value;
+      socket.emit("sendMsg", { destUserId: destUserId, msg: msg.toString() });
+      const message = {sender : "You", msg: msg.toString()};
+      printMsg(message);
+    //   alert("Msg send");
+    });
+
+    socket.on("merror", error => {
+      console.log("Error:", error.msg);
+    });
+
+    socket.on("message", message => {
+      console.log(message.sender + " : " + message.msg);
+      printMsg(message);
+    });
+
+    function printMsg(message){
+        $("#messages").append(`
+      <h4> ${message.sender} </h4>
+      <p>  ${message.msg} </p>`);
+    }
+
+    socket.on("onlineUser", data => {
+      let users = new Map(JSON.parse(data));
+      createListItem(users);
+    });
+
+    function createListItem(users) {
+      var user = new Map();
+      const userItems = [];
+      const list = document.getElementById("onlineUser");
+      list.innerHTML = "";
+      users.forEach((value, key) => {
+        var button = document.createElement("button");
+        button.innerHTML = value;
+        button.setAttribute("id", key);
+        button.setAttribute(
+          "class",
+          "list-group-item list-group-item-action userItem"
+        );
+        button.setAttribute("type", "button");
+        button.onclick = function() {
+            destUserId = this.id.toString();
+        };
+        list.append(button);
+      });
+    }
+  </script>
+</html>
